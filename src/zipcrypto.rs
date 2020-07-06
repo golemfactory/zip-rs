@@ -6,14 +6,14 @@
 use std::num::Wrapping;
 
 /// A container to hold the current key state
-struct ZipCryptoKeys {
+pub(crate) struct ZipCryptoKeys {
     key_0: Wrapping<u32>,
     key_1: Wrapping<u32>,
     key_2: Wrapping<u32>,
 }
 
 impl ZipCryptoKeys {
-    fn new() -> ZipCryptoKeys {
+    pub(crate) fn new() -> ZipCryptoKeys {
         ZipCryptoKeys {
             key_0: Wrapping(0x12345678),
             key_1: Wrapping(0x23456789),
@@ -21,7 +21,7 @@ impl ZipCryptoKeys {
         }
     }
 
-    fn update(&mut self, input: u8) {
+    pub(crate) fn update(&mut self, input: u8) {
         self.key_0 = ZipCryptoKeys::crc32(self.key_0, input);
         self.key_1 =
             (self.key_1 + (self.key_0 & Wrapping(0xff))) * Wrapping(0x08088405) + Wrapping(1);
@@ -33,7 +33,7 @@ impl ZipCryptoKeys {
         ((temp * (temp ^ Wrapping(1))) >> 8).0 as u8
     }
 
-    fn decrypt_byte(&mut self, cipher_byte: u8) -> u8 {
+    pub(crate) fn decrypt_byte(&mut self, cipher_byte: u8) -> u8 {
         let plain_byte: u8 = self.stream_byte() ^ cipher_byte;
         self.update(plain_byte);
         plain_byte
