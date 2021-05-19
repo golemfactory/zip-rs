@@ -6,7 +6,7 @@
 use crate::zipcrypto::ZipCryptoKeys;
 use std::task::Context;
 use tokio::io;
-use tokio::io::AsyncRead;
+use tokio::io::{AsyncRead, ReadBuf};
 use tokio::macros::support::{Pin, Poll};
 
 /// A ZipCrypto reader with unverified password
@@ -38,16 +38,20 @@ impl<R: AsyncRead + Unpin> AsyncRead for ZipCryptoReader<R> {
     fn poll_read(
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-        buf: &mut [u8],
-    ) -> Poll<io::Result<usize>> {
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<io::Result<()>> {
         let this = self.get_mut();
+
+        let pos = buf.filled().len();
         let poll = { Pin::new(&mut this.reader).poll_read(cx, buf) };
+        let new_pos = buf.filled().len();
+
         match poll {
-            Poll::Ready(Ok(n)) => {
-                for byte in buf[..n].iter_mut() {
+            Poll::Ready(Ok(())) => {
+                for byte in (&mut buf.filled_mut()[pos..new_pos]).iter_mut() {
                     *byte = this.keys.decrypt_byte(*byte);
                 }
-                Poll::Ready(Ok(n))
+                Poll::Ready(Ok(()))
             }
             poll => poll,
         }

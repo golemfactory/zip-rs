@@ -13,7 +13,7 @@ mod crc32;
 pub mod read;
 pub mod result;
 mod spec;
-#[cfg(feature = "tokio-02")]
+#[cfg(feature = "tokio-1")]
 pub mod tokio;
 mod types;
 pub mod write;

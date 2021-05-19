@@ -4,7 +4,7 @@ name = "zip"
 version = "0.5.6"
 authors = ["Mathijs van de Nes <git@mathijs.vd-nes.nl>"]
 license = "MIT"
-repository = "https://github.com/mvdnes/zip-rs.git"
+repository = "https://github.com/golemfactory/zip-rs.git"
 documentation = "http://mvdnes.github.io/rust-docs/zip-rs/zip/index.html"
 keywords = ["zip", "archive"]
 description = """
@@ -13,28 +13,28 @@ Library to support the reading and writing of zip files.
 edition = "2018"
 
 [dependencies]
-async-compression = { version = "0.3.5", features = ["tokio-02", "bzip2", "deflate", "zlib"], optional = true }
+async-compression = { version = "=0.3.7", features = ["tokio", "bzip2", "deflate", "zlib"], optional = true }
 flate2 = { version = "1.0", default-features = false, optional = true }
 time = { version = "0.1", optional = true }
 byteorder = "1.3"
 bzip2 = { version = "0.3", optional = true }
 crc32fast = "1.0"
 thiserror = "1.0"
-tokio = { version = "0.2", features = ["io-util"], optional = true }
-tokio-byteorder = { version = "0.2", optional = true }
+tokio = { version = "1.6", features = ["io-util"], optional = true }
+tokio-byteorder = { version = "0.3", optional = true }
 
 [dev-dependencies]
 bencher = "0.1"
 rand = "0.7"
 walkdir = "2"
-tokio = { version = "0.2", features = ["io-util", "rt-threaded", "macros"] }
+tokio = { version = "1.6", features = ["io-util", "rt", "macros"] }
 
 [features]
 deflate = ["flate2/rust_backend"]
 deflate-miniz = ["flate2/default"]
 deflate-zlib = ["flate2/zlib"]
 default = ["bzip2", "deflate", "time"]
-tokio-02 = ["tokio", "tokio-byteorder", "async-compression"]
+tokio-1 = ["tokio", "tokio-byteorder", "async-compression"]
 
 [[bench]]
 name = "read_entry"

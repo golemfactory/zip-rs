@@ -9,18 +9,18 @@ use std::borrow::Cow;
 use std::io;
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use tokio::io::{AsyncRead, BufReader, Take};
+use tokio::io::{AsyncRead, BufReader, ReadBuf, Take};
 
 use crate::cp437::FromCp437;
 use crate::types::{DateTime, System, ZipFileData};
 use tokio_byteorder::{AsyncReadBytesExt, LittleEndian};
 
 #[cfg(feature = "bzip2")]
-use async_compression::tokio_02::bufread::BzDecoder;
+use async_compression::tokio::bufread::BzDecoder;
 #[cfg(feature = "deflate")]
-use async_compression::tokio_02::bufread::DeflateDecoder;
+use async_compression::tokio::bufread::DeflateDecoder;
 #[cfg(feature = "deflate-zlib")]
-use async_compression::tokio_02::bufread::ZlibDecoder;
+use async_compression::tokio::bufread::ZlibDecoder;
 
 mod ffi {
     pub const S_IFDIR: u32 = 0o0040000;
@@ -36,8 +36,8 @@ impl<'a> AsyncRead for CryptoReader<'a> {
     fn poll_read(
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-        buf: &mut [u8],
-    ) -> Poll<io::Result<usize>> {
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<io::Result<()>> {
         match self.get_mut() {
             CryptoReader::Plaintext(r) => Pin::new(r).poll_read(cx, buf),
             CryptoReader::ZipCrypto(r) => Pin::new(r).poll_read(cx, buf),
@@ -70,8 +70,8 @@ impl<'a> AsyncRead for ZipFileReader<'a> {
     fn poll_read(
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-        buf: &mut [u8],
-    ) -> Poll<io::Result<usize>> {
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<io::Result<()>> {
         match self.get_mut() {
             ZipFileReader::NoReader => panic!("ZipFileReader was in an invalid state"),
             ZipFileReader::Stored(r) => Pin::new(r).poll_read(cx, buf),
@@ -311,8 +311,8 @@ impl<'a> AsyncRead for ZipFile<'a> {
     fn poll_read(
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-        buf: &mut [u8],
-    ) -> Poll<io::Result<usize>> {
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<io::Result<()>> {
         let r = Pin::new(&mut self.get_mut().reader);
         r.poll_read(cx, buf)
     }
